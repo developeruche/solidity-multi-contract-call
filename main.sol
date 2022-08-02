@@ -1,0 +1,40 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.13;
+
+
+// The aim is to create a a function that would exceute multiply functions at once 
+contract MultiCall {
+
+    /// @dev here is wehe the mainlogic is exceuted 
+    function multiCall(address[] calldata targets, bytes[] calldata data)
+        external
+        view
+        returns (bytes[] memory)
+    {
+        require(targets.length == data.length, "target length != data length");
+
+        bytes[] memory results = new bytes[](data.length);
+
+        for (uint i; i < targets.length; i++) {
+            (bool success, bytes memory result) = targets[i].staticcall(data[i]);
+            require(success, "call failed");
+            results[i] = result;
+        }
+
+        return results;
+    }
+}
+
+contract TestMultiCall {
+    function test(uint _i) external pure returns (uint) {
+        return _i;
+    }
+
+    function getData(uint _i) external pure returns (bytes memory) {
+        return abi.encodeWithSelector(this.test.selector, _i);
+    }
+}
+
+
+
+// ? can this method be used to prevent MEV attacks
